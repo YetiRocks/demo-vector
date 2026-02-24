@@ -1,0 +1,11 @@
+# Vector Search Demo Schema
+
+type Article @table(database: "demo-vector") @export {
+    id: ID! @primaryKey
+    title: String!
+    author: String!
+    category: String!
+    tags: String
+    content: String!
+    embedding: Vector @indexed(source: "content", model: "BAAI/bge-small-en-v1.5")
+}
