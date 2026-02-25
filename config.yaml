@@ -9,6 +9,9 @@ graphql: true
 schemas:
   - schemas/vector.graphql
 
+resources:
+  - resources/*.rs
+
 static_files:
   path: web
   route: /
