@@ -6,7 +6,7 @@
   --color-white: #dddddd;
   --color-grey: #666666;
   --color-black-overlay: rgba(0, 0, 0, 0.2);
-  --color-white-overlay: rgba(255, 255, 255, 0.06);
+  --color-white-overlay: var(--color-white-overlay);
   --color-success: #ff00ff;
   --color-warning: #d7ba7d;
   --color-error: #d16969;
@@ -69,18 +69,10 @@ body {
   flex-direction: column;
 }
 
-.app-shell {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
 /* ── Nav (73px fixed) ── */
 .nav {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  inset: 0 0 auto;
   z-index: 100;
   display: flex;
   align-items: center;
@@ -186,47 +178,6 @@ body {
   color: var(--color-white);
 }
 
-/* ── Header (73px, legacy) ── */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 73px;
-  padding: 0 2rem;
-  border-bottom: 1px solid var(--color-border-primary);
-  background: var(--color-black-overlay);
-  flex-shrink: 0;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.logo {
-  height: 40px;
-  aspect-ratio: 684.5 / 269.55;
-}
-
-.header-title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-white);
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
 /* ── Panels ── */
 .panel {
   display: flex;
@@ -291,7 +242,7 @@ body {
 }
 
 .btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-white-overlay);
   border-color: rgba(255, 255, 255, 0.15);
 }
 
@@ -321,7 +272,7 @@ body {
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-white-overlay);
   border-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -372,7 +323,7 @@ body {
 }
 
 .btn-cancel:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-white-overlay);
 }
 
 .btn-delete {
@@ -382,7 +333,7 @@ body {
 }
 
 .btn-delete:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-white-overlay);
   border-color: rgba(255, 255, 255, 0.1);
 }
 
