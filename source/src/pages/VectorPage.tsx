@@ -7,6 +7,7 @@ hljs.registerLanguage('json', json)
 
 const BASE_URL = window.location.origin + '/demo-vector'
 const VECTOR_MODEL = 'BAAI/bge-small-en-v1.5'
+const MAX_SSE_ITEMS = 20
 
 let recordCounter = 0
 
@@ -53,13 +54,23 @@ function CodePane({ children, placeholder }: { children: string; placeholder?: s
   )
 }
 
+interface SseArticle {
+  id: string
+  [key: string]: unknown
+}
+
 export function VectorPage() {
   // Insert panel state
   const [originalRecord, setOriginalRecord] = useState<string>('')
-  const [insertedRecord, setInsertedRecord] = useState<string>('')
   const [insertLoading, setInsertLoading] = useState(false)
   const [recordCount, setRecordCount] = useState<number | null>(null)
   const [insertError, setInsertError] = useState<string>('')
+  const [insertTime, setInsertTime] = useState<number | null>(null)
+
+  // SSE stream state
+  const [sseArticles, setSseArticles] = useState<SseArticle[]>([])
+  const [sseConnected, setSseConnected] = useState(false)
+  const eventSourceRef = useRef<EventSource | null>(null)
 
   const fetchRecordCount = useCallback(async () => {
     try {
@@ -70,8 +81,6 @@ export function VectorPage() {
       }
     } catch { /* ignore */ }
   }, [])
-
-  const [insertTime, setInsertTime] = useState<number | null>(null)
 
   // Delete modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -86,6 +95,63 @@ export function VectorPage() {
 
   useEffect(() => { fetchRecordCount() }, [fetchRecordCount])
 
+  // SSE subscription — listens for enriched articles arriving from the WAL consumer
+  useEffect(() => {
+    let es: EventSource | null = null
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null
+    let retryDelay = 1000
+
+    function connect() {
+      es = new EventSource(`${BASE_URL}/Article/`)
+      eventSourceRef.current = es
+
+      es.onopen = () => {
+        setSseConnected(true)
+        retryDelay = 1000 // reset backoff on success
+      }
+
+      es.addEventListener('update', (e: MessageEvent) => {
+        try {
+          const data = JSON.parse(e.data) as SseArticle
+          setSseArticles(prev => {
+            // Deduplicate by id (consumer may re-send on retry)
+            const filtered = prev.filter(a => a.id !== data.id)
+            return [data, ...filtered].slice(0, MAX_SSE_ITEMS)
+          })
+          setRecordCount(c => c !== null ? c + 1 : 1)
+        } catch { /* ignore malformed */ }
+      })
+
+      es.addEventListener('delete', (e: MessageEvent) => {
+        try {
+          const data = JSON.parse(e.data)
+          if (data.id) {
+            setSseArticles(prev => prev.filter(a => a.id !== data.id))
+          }
+        } catch { /* ignore */ }
+      })
+
+      es.onerror = () => {
+        setSseConnected(false)
+        es?.close()
+        eventSourceRef.current = null
+        // Exponential backoff reconnect (max 10s)
+        retryTimeout = setTimeout(() => {
+          retryDelay = Math.min(retryDelay * 2, 10000)
+          connect()
+        }, retryDelay)
+      }
+    }
+
+    connect()
+
+    return () => {
+      if (retryTimeout) clearTimeout(retryTimeout)
+      es?.close()
+      eventSourceRef.current = null
+    }
+  }, [])
+
   const handleAddRecord = useCallback(async () => {
     setInsertLoading(true)
     setInsertError('')
@@ -94,7 +160,6 @@ export function VectorPage() {
     try {
       const record = generateRecord()
       setOriginalRecord(JSON.stringify(record, null, 2))
-      setInsertedRecord('')
 
       const response = await fetch(`${BASE_URL}/Article`, {
         method: 'POST',
@@ -107,38 +172,28 @@ export function VectorPage() {
         throw new Error(`HTTP ${response.status}: ${text}`)
       }
 
-      // POST returns the ID -- fetch the full record to see the embedding
-      const getResponse = await fetch(`${BASE_URL}/Article/${record.id}`)
-      if (!getResponse.ok) {
-        const text = await getResponse.text()
-        throw new Error(`GET failed: HTTP ${getResponse.status}: ${text}`)
-      }
-
-      const data = await getResponse.json()
-      const display = truncateEmbeddings(data)
-      setInsertedRecord(JSON.stringify(display, null, 2))
-      fetchRecordCount()
       setInsertTime(performance.now() - t0)
+      // Don't need to re-fetch count — SSE update event will increment it
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error'
       setInsertError(msg)
     } finally {
       setInsertLoading(false)
     }
-  }, [fetchRecordCount])
+  }, [])
 
   const handleDeleteAll = useCallback(async () => {
     setDeleteLoading(true)
     try {
-      const response = await fetch(`${BASE_URL}/Article/`)
-      if (!response.ok) throw new Error(`Failed to list: HTTP ${response.status}`)
-      const records = await response.json() as Record<string, unknown>[]
-      for (const record of records) {
-        await fetch(`${BASE_URL}/Article/${record.id}`, { method: 'DELETE' })
+      // DELETE /Article/ (no ID) — collection-level truncate (single request)
+      const response = await fetch(`${BASE_URL}/Article/`, { method: 'DELETE' })
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(`HTTP ${response.status}: ${text}`)
       }
       setRecordCount(0)
       setOriginalRecord('')
-      setInsertedRecord('')
+      setSseArticles([])
       setInsertError('')
       setSearchResults('')
     } catch (err) {
@@ -200,6 +255,11 @@ export function VectorPage() {
     if (e.key === 'Enter') handleSearch()
   }, [handleSearch])
 
+  // Format SSE articles for display
+  const sseDisplay = sseArticles.length > 0
+    ? JSON.stringify(sseArticles.map(truncateEmbeddings), null, 2)
+    : ''
+
   return (
     <>
         {/* Left Panel -- Insert Records */}
@@ -229,13 +289,16 @@ export function VectorPage() {
           {insertError && <div className="error-bar">{insertError}</div>}
           <div className="panel-header">
             <span className="panel-title">Original Record</span>
+            {insertTime !== null && <span className="panel-badge">{(insertTime / 1000).toFixed(2)}s</span>}
           </div>
           <CodePane placeholder='Click "Add Record" to generate an article'>{originalRecord}</CodePane>
           <div className="panel-header">
-            <span className="panel-title">After Insert (with embedding)</span>
-            {insertTime !== null && <span className="panel-badge">{(insertTime / 1000).toFixed(2)}s</span>}
+            <span className="panel-title">Live Stream (enriched via SSE)</span>
+            <span className={`panel-badge ${sseConnected ? 'success' : ''}`}>
+              {sseConnected ? 'connected' : 'disconnected'}
+            </span>
           </div>
-          <CodePane placeholder={insertLoading ? 'Embedding and inserting...' : 'The server response will appear here'}>{insertedRecord}</CodePane>
+          <CodePane placeholder="Enriched articles with embeddings will appear here via SSE as the WAL consumer processes them">{sseDisplay}</CodePane>
         </div>
 
         {/* Right Panel -- Vector Search */}
