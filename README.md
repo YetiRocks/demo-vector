@@ -6,10 +6,10 @@
 
 # demo-vector
 
-[![Yeti](https://img.shields.io/badge/Yeti-Application-blue)](https://yetirocks.com)
+[![Yeti](https://img.shields.io/badge/Yeti-Demo-blue)](https://yetirocks.com/demo-vector)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> **[Yeti](https://yetirocks.com)** — The Performance Platform for Agent-Driven Development.
+> **[Yeti](https://yetirocks.com)** - The Performance Platform for Agent-Driven Development.
 > Schema-driven APIs, real-time streaming, and vector search. From prompt to production.
 
 Automatic text-to-vector embedding with HNSW nearest-neighbor semantic search. Add articles, then search by natural language.
