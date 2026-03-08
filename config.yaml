@@ -9,9 +9,6 @@ graphql: true
 schemas:
   - schemas/vector.graphql
 
-resources:
-  - resources/*.rs
-
 static_files:
   path: web
   route: /
@@ -22,6 +19,3 @@ static_files:
   build:
     sourceDir: source
     command: npm run build
-
-extensions:
-  - yeti-vectors

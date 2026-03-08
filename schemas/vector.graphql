@@ -1,6 +1,6 @@
 # Vector Search Demo Schema
 
-type Article @table(database: "demo-vector") @export(public: [read, create]) {
+type Article @table(database: "demo-vector") @export(public: [read, create, delete]) {
     id: ID! @primaryKey
     title: String!
     author: String!
