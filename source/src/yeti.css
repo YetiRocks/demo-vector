@@ -7,10 +7,11 @@
   --color-grey: #666666;
   --color-black-overlay: rgba(0, 0, 0, 0.2);
   --color-white-overlay: rgba(255, 255, 255, 0.06);
-  --color-success: #ff00ff;
-  --color-warning: #d7ba7d;
-  --color-error: #d16969;
-  --color-info: #569cd6;
+  --color-primary: #ff00ff;
+  --color-success: #22bb33;
+  --color-warning: #f0ad4e;
+  --color-error: #bb2124;
+  --color-info: #5bc0de;
   --color-border-primary: var(--color-white-overlay);
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -212,7 +213,7 @@ body {
 
 .panel-badge {
   background: var(--color-white-overlay);
-  color: var(--color-grey);
+  color: var(--color-white);
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
@@ -419,8 +420,8 @@ body {
 /* ── Error Bar ── */
 .error-bar {
   padding: var(--space-2) var(--space-4);
-  background: rgba(209, 105, 105, 0.1);
-  border-bottom: 1px solid rgba(209, 105, 105, 0.3);
+  background: rgba(187, 33, 36, 0.1);
+  border-bottom: 1px solid rgba(187, 33, 36, 0.3);
   color: var(--color-error);
   font-size: var(--font-size-xs);
   font-family: var(--font-family-mono);
@@ -442,7 +443,7 @@ body {
 }
 
 .search-input:focus {
-  border-color: rgba(255, 0, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .search-input::placeholder {
@@ -499,8 +500,8 @@ body {
 .json-key { color: #9cdcfe; }
 .json-string { color: #a8785a; }
 .json-number { color: #b5cea8; }
-.json-boolean { color: #569cd6; }
-.json-null { color: #569cd6; }
+.json-boolean { color: #5bc0de; }
+.json-null { color: #5bc0de; }
 
 /* ── Scrollbar ── */
 *::-webkit-scrollbar {

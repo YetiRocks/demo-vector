@@ -1,13 +1,27 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import hljs from 'highlight.js/lib/core'
 import json from 'highlight.js/lib/languages/json'
+import graphql from 'highlight.js/lib/languages/graphql'
 import { ARTICLES } from '../articles.ts'
 
 hljs.registerLanguage('json', json)
+hljs.registerLanguage('graphql', graphql)
 
 const BASE_URL = window.location.origin + '/demo-vector'
 const VECTOR_MODEL = 'BAAI/bge-small-en-v1.5'
 const MAX_SSE_ITEMS = 20
+
+const SCHEMA_GRAPHQL = `# Vector Search Demo Schema
+
+type Article @table(database: "demo-vector") @export(public: [read, create, delete]) {
+    id: ID! @primaryKey
+    title: String!
+    author: String!
+    category: String!
+    tags: String
+    content: String!
+    embedding: Vector @indexed(source: "content", model: "BAAI/bge-small-en-v1.5")
+}`
 
 let recordCounter = 0
 
@@ -26,13 +40,21 @@ function truncateEmbeddings(obj: Record<string, unknown>): Record<string, unknow
   const result = { ...obj }
   if (Array.isArray(result.embedding) && result.embedding.length > 4) {
     const arr = result.embedding as number[]
-    result.embedding = `[${arr.slice(0, 4).map(n => n.toFixed(4)).join(', ')}, ... (${arr.length} dims)]` as unknown
+    result.embedding = [...arr.slice(0, 4).map(n => parseFloat(n.toFixed(4))), `... ${arr.length} dims`] as unknown
   }
   return result
 }
 
+// Collapse "embedding" arrays onto a single line in pretty-printed JSON
+function collapseEmbeddings(json: string): string {
+  return json.replace(/"embedding": \[\s*([\s\S]*?)\s*\]/g, (_, inner) => {
+    const collapsed = inner.replace(/\s*\n\s*/g, ' ').trim()
+    return `"embedding": [${collapsed}]`
+  })
+}
+
 // Highlighted code pane (read-only, fills its section)
-function CodePane({ children, placeholder }: { children: string; placeholder?: string }) {
+function CodePane({ children, placeholder, language = 'json' }: { children: string; placeholder?: string; language?: string }) {
   const codeRef = useRef<HTMLElement>(null)
   useEffect(() => {
     if (codeRef.current && children) {
@@ -50,7 +72,7 @@ function CodePane({ children, placeholder }: { children: string; placeholder?: s
   }
 
   return (
-    <pre className="code-pane"><code ref={codeRef} className="language-json">{children}</code></pre>
+    <pre className="code-pane"><code ref={codeRef} className={`language-${language}`}>{children}</code></pre>
   )
 }
 
@@ -61,7 +83,6 @@ interface SseArticle {
 
 export function VectorPage() {
   // Insert panel state
-  const [originalRecord, setOriginalRecord] = useState<string>('')
   const [insertLoading, setInsertLoading] = useState(false)
   const [recordCount, setRecordCount] = useState<number | null>(null)
   const [insertError, setInsertError] = useState<string>('')
@@ -159,7 +180,6 @@ export function VectorPage() {
     const t0 = performance.now()
     try {
       const record = generateRecord()
-      setOriginalRecord(JSON.stringify(record, null, 2))
 
       const response = await fetch(`${BASE_URL}/Article`, {
         method: 'POST',
@@ -192,7 +212,6 @@ export function VectorPage() {
         throw new Error(`HTTP ${response.status}: ${text}`)
       }
       setRecordCount(0)
-      setOriginalRecord('')
       setSseArticles([])
       setInsertError('')
       setSearchResults('')
@@ -241,7 +260,7 @@ export function VectorPage() {
           return display
         })
 
-      setSearchResults(JSON.stringify(results, null, 2))
+      setSearchResults(collapseEmbeddings(JSON.stringify(results, null, 2)))
       setSearchTime(performance.now() - t0)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error'
@@ -257,7 +276,7 @@ export function VectorPage() {
 
   // Format SSE articles for display
   const sseDisplay = sseArticles.length > 0
-    ? JSON.stringify(sseArticles.map(truncateEmbeddings), null, 2)
+    ? collapseEmbeddings(JSON.stringify(sseArticles.map(truncateEmbeddings), null, 2))
     : ''
 
   return (
@@ -265,11 +284,8 @@ export function VectorPage() {
         {/* Left Panel -- Insert Records */}
         <div className="panel">
           <div className="panel-header">
-            <span className="panel-title">Insert Records</span>
+            <span className="panel-title">Insert Records ({recordCount === null ? '...' : recordCount})</span>
             <div className="header-actions">
-              <span className={`panel-badge ${recordCount ? 'success' : ''}`}>
-                {recordCount === null ? '...' : `${recordCount} records`}
-              </span>
               <button
                 className="btn btn-primary btn-sm"
                 onClick={handleAddRecord}
@@ -288,15 +304,13 @@ export function VectorPage() {
           </div>
           {insertError && <div className="error-bar">{insertError}</div>}
           <div className="panel-header">
-            <span className="panel-title">Original Record</span>
+            <span className="panel-title">Table Schema</span>
             {insertTime !== null && <span className="panel-badge">{(insertTime / 1000).toFixed(2)}s</span>}
           </div>
-          <CodePane placeholder='Click "Add Record" to generate an article'>{originalRecord}</CodePane>
+          <CodePane language="graphql">{SCHEMA_GRAPHQL}</CodePane>
           <div className="panel-header">
             <span className="panel-title">Live Stream (enriched via SSE)</span>
-            <span className={`panel-badge ${sseConnected ? 'success' : ''}`}>
-              {sseConnected ? 'connected' : 'disconnected'}
-            </span>
+            <span className={`status-dot ${sseConnected ? 'connected' : 'disconnected'}`}></span>
           </div>
           <CodePane placeholder="Enriched articles with embeddings will appear here via SSE as the WAL consumer processes them">{sseDisplay}</CodePane>
         </div>
