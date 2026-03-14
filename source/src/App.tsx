@@ -1,5 +1,6 @@
 import Footer from './components/Footer'
 import { VectorPage } from './pages/VectorPage'
+import './theme'
 
 export default function App() {
   return (
