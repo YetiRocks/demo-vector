@@ -52,10 +52,6 @@ name: "Vector Search Demo"
 app_id: "demo-vector"
 version: "1.0.0"
 description: "Automatic text-to-vector embedding with HNSW nearest-neighbor semantic search"
-enabled: true
-rest: true
-graphql: true
-
 schemas:
   - schemas/vector.graphql
 
@@ -69,9 +65,6 @@ static_files:
   build:
     sourceDir: source
     command: npm run build
-
-extensions:
-  - yeti-vectors
 ```
 
 ## Schema
