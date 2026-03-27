@@ -118,6 +118,15 @@ body {
   justify-content: flex-end;
 }
 
+.nav-github {
+  display: flex;
+  align-items: center;
+  color: var(--color-grey);
+  transition: color var(--transition-fast);
+}
+.nav-github:hover { color: var(--color-white); }
+.nav-github svg { width: 22px; height: 22px; }
+
 /* ── Page (below fixed nav) ── */
 .page {
   flex: 1;
