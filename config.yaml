@@ -1,5 +1,6 @@
 name: "Vector Search Demo"
 app_id: "demo-vector"
+customer_id: "yeti"
 version: "1.0.0"
 description: "Automatic text-to-vector embedding with HNSW nearest-neighbor semantic search"
 schemas:
