@@ -4,11 +4,12 @@ customer_id: "yeti"
 version: "1.0.0"
 description: "Automatic text-to-vector embedding with HNSW nearest-neighbor semantic search"
 schemas:
-  - schemas/vector.graphql
+  path: schemas/vector.graphql
 
-static_files:
+static:
   path: web
+  route: /
   spa: true
   build:
-    sourceDir: source
+    source: source
     command: npm run build

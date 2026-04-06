@@ -8,7 +8,7 @@ export default function App() {
       <nav className="nav">
         <div className="nav-left">
           <a href="/">
-            <img src={`${import.meta.env.BASE_URL}logo_white.svg`} alt="Yeti" className="nav-logo" />
+            <img src="logo_white.svg" alt="Yeti" className="nav-logo" />
           </a>
         </div>
         <span className="nav-title">Vector Search Demo</span>
