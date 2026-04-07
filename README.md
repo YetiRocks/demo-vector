@@ -48,7 +48,7 @@ Restart yeti. The frontend builds automatically on first load via `npm run build
 ### 2. Insert an article
 
 ```bash
-curl -X POST https://localhost:9996/demo-vector/Article \
+curl -X POST https://localhost/demo-vector/Article \
   -H "Content-Type: application/json" \
   -d '{
     "id": "article-1",
@@ -78,7 +78,7 @@ The `embedding` field is automatically generated from the `content` field using 
 ### 3. Search by meaning
 
 ```bash
-curl "https://localhost:9996/demo-vector/Article/?query=%7B%22conditions%22%3A%5B%7B%22field%22%3A%22embedding%22%2C%22op%22%3A%22vector%22%2C%22value%22%3A%22neural%20network%20training%22%7D%5D%2C%22limit%22%3A5%7D"
+curl "https://localhost/demo-vector/Article/?query=%7B%22conditions%22%3A%5B%7B%22field%22%3A%22embedding%22%2C%22op%22%3A%22vector%22%2C%22value%22%3A%22neural%20network%20training%22%7D%5D%2C%22limit%22%3A5%7D"
 ```
 
 The query JSON (URL-decoded):
@@ -112,7 +112,7 @@ The search text "neural network training" is embedded on the fly and compared ag
 
 ```bash
 # SSE stream -- receive enriched articles as they are inserted
-curl -N "https://localhost:9996/demo-vector/Article/"
+curl -N "https://localhost/demo-vector/Article/"
 ```
 
 Output (server-sent events):
@@ -127,18 +127,18 @@ data: {"id":"article-3","title":"Volcanic Activity on Io","author":"Maria Santos
 ### 5. List all articles
 
 ```bash
-curl "https://localhost:9996/demo-vector/Article/?limit=10"
+curl "https://localhost/demo-vector/Article/?limit=10"
 ```
 
 ### 6. Delete an article
 
 ```bash
-curl -X DELETE "https://localhost:9996/demo-vector/Article/article-1"
+curl -X DELETE "https://localhost/demo-vector/Article/article-1"
 ```
 
 ### 7. Open the web UI
 
-Navigate to `https://localhost:9996/demo-vector/` in your browser. The React frontend provides:
+Navigate to `https://localhost/demo-vector/` in your browser. The React frontend provides:
 - One-click article insertion from 100 sample articles
 - Live SSE stream showing enriched articles with truncated embeddings
 - Natural language search with syntax-highlighted JSON results
@@ -315,13 +315,14 @@ app_id: "demo-vector"
 version: "1.0.0"
 description: "Automatic text-to-vector embedding with HNSW nearest-neighbor semantic search"
 schemas:
-  - schemas/vector.graphql
+  path: schemas/vector.graphql
 
-static_files:
+static:
   path: web
+  route: /
   spa: true
   build:
-    sourceDir: source
+    source: source
     command: npm run build
 ```
 
