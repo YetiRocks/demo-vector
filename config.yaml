@@ -6,10 +6,14 @@ description: "Automatic text-to-vector embedding with HNSW nearest-neighbor sema
 schemas:
   path: schemas/vector.graphql
 
+resources:
+  path: []
+  root: /api
+
 static:
   path: web
-  route: /
+  root: /
   spa: true
   build:
     source: source
-    command: npm run build
+    command: npm install && npm run build

@@ -94,7 +94,7 @@ export function VectorPage() {
 
   const fetchRecordCount = useCallback(async () => {
     try {
-      const response = await fetch(`${RESOURCE_ROUTE}/Article/`)
+      const response = await fetch(`${__STATIC_ROOT__}/${__RESOURCES_ROOT__}/Article/`)
       if (response.ok) {
         const records = await response.json() as unknown[]
         setRecordCount(records.length)
@@ -122,7 +122,7 @@ export function VectorPage() {
     let retryDelay = 1000
 
     function connect() {
-      es = new EventSource(`${RESOURCE_ROUTE}/Article/`)
+      es = new EventSource(`${__STATIC_ROOT__}/${__RESOURCES_ROOT__}/Article/`)
       eventSourceRef.current = es
 
       es.onopen = () => {
@@ -180,7 +180,7 @@ export function VectorPage() {
     try {
       const record = generateRecord()
 
-      const response = await fetch(`${RESOURCE_ROUTE}/Article`, {
+      const response = await fetch(`${__STATIC_ROOT__}/${__RESOURCES_ROOT__}/Article`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(record),
@@ -205,7 +205,7 @@ export function VectorPage() {
     setDeleteLoading(true)
     try {
       // DELETE /Article/ (no ID) — collection-level truncate (single request)
-      const response = await fetch(`${RESOURCE_ROUTE}/Article/`, { method: 'DELETE' })
+      const response = await fetch(`${__STATIC_ROOT__}/${__RESOURCES_ROOT__}/Article/`, { method: 'DELETE' })
       if (!response.ok) {
         const text = await response.text()
         throw new Error(`HTTP ${response.status}: ${text}`)
@@ -241,7 +241,7 @@ export function VectorPage() {
         limit: 10,
       }
       setSearchRequestJson(JSON.stringify({ table: 'Article', ...queryObj }, null, 2))
-      const requestUrl = `${RESOURCE_ROUTE}/Article/?query=${encodeURIComponent(JSON.stringify(queryObj))}`
+      const requestUrl = `${__STATIC_ROOT__}/${__RESOURCES_ROOT__}/Article/?query=${encodeURIComponent(JSON.stringify(queryObj))}`
       const response = await fetch(requestUrl)
 
       if (!response.ok) {
