@@ -1,0 +1,12 @@
+[package]
+name = "demo-vector"
+edition = "2024"
+description = "Vector Search Demo"
+version = "1.0.0"
+
+[package.metadata.app]
+customer_id = "yeti"
+schemas = "schemas/vector.graphql"
+static = { path = "web", root = "/", source = "source", spa = true, build = "npm install && npm run build" }
+
+[dependencies]
