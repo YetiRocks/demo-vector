@@ -1,0 +1,16 @@
+name: "Vector Search Demo"
+app_id: "demo-vector"
+customer_id: "yeti"
+version: "1.0.0"
+description: "Vector Search Demo"
+
+schemas:
+  path: schemas/vector.graphql
+
+static:
+  path: web
+  root: /
+  spa: true
+  build:
+    source: source
+    command: npm install && npm run build
