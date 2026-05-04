@@ -1,11 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import hljs from 'highlight.js/lib/core'
-import json from 'highlight.js/lib/languages/json'
-import graphql from 'highlight.js/lib/languages/graphql'
+import CodeBlock from '../components/CodeBlock'
 import { ARTICLES } from '../articles.ts'
-
-hljs.registerLanguage('json', json)
-hljs.registerLanguage('graphql', graphql)
 
 const VECTOR_MODEL = 'BAAI/bge-small-en-v1.5'
 const MAX_SSE_ITEMS = 20
@@ -52,27 +47,10 @@ function collapseEmbeddings(json: string): string {
   })
 }
 
-// Highlighted code pane (read-only, fills its section)
+// Adapter — delegates to the shared CodeBlock so all in-app code displays
+// share one syntax-highlighting pipeline.
 function CodePane({ children, placeholder, language = 'json' }: { children: string; placeholder?: string; language?: string }) {
-  const codeRef = useRef<HTMLElement>(null)
-  useEffect(() => {
-    if (codeRef.current && children) {
-      codeRef.current.removeAttribute('data-highlighted')
-      hljs.highlightElement(codeRef.current)
-    }
-  }, [children])
-
-  if (!children) {
-    return (
-      <div className="code-pane code-pane-empty">
-        <span className="empty-hint">{placeholder || 'No data'}</span>
-      </div>
-    )
-  }
-
-  return (
-    <pre className="code-pane"><code ref={codeRef} className={`language-${language}`}>{children}</code></pre>
-  )
+  return <CodeBlock value={children} language={language} placeholder={placeholder} />
 }
 
 interface SseArticle {
