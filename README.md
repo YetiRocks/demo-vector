@@ -307,32 +307,26 @@ type Article @table(database: "demo-vector") @export(public: [read, create, dele
 
 ## Configuration
 
-### config.yaml
+App configuration lives in `Cargo.toml` under `[package.metadata.app]`. There is no separate `config.yaml` or `services.yaml`.
 
-```yaml
-name: "Vector Search Demo"
-app_id: "demo-vector"
-version: "1.0.0"
-description: "Automatic text-to-vector embedding with HNSW nearest-neighbor semantic search"
-schemas:
-  path: schemas/vector.graphql
+```toml
+[package]
+name = "demo-vector"
+version = "1.0.0"
+description = "Automatic text-to-vector embedding with HNSW nearest-neighbor semantic search"
 
-static:
-  path: web
-  route: /
-  spa: true
-  build:
-    source: source
-    command: npm run build
+[package.metadata.app]
+schemas = "schemas/vector.graphql"
+static = { path = "web", source = "source", spa = true, build = "npm install && npm run build" }
 ```
 
 | Field | Value | Description |
 |-------|-------|-------------|
-| `app_id` | demo-vector | URL prefix for all endpoints |
+| `package.name` | demo-vector | URL prefix for all endpoints |
 | `schemas` | schemas/vector.graphql | Single schema defining the Article table |
-| `static_files.path` | web | Built frontend served at `/demo-vector/` |
-| `static_files.spa` | true | SPA mode -- all routes fall back to index.html |
-| `static_files.build` | npm run build | Auto-builds from `source/` on first load |
+| `static.path` | web | Built frontend served at `/demo-vector/` |
+| `static.spa` | true | SPA mode -- all routes fall back to index.html |
+| `static.source` / `static.build` | source -> npm install && npm run build | Auto-builds from `source/` on first load |
 
 ### Embedding Models
 
@@ -384,28 +378,48 @@ All endpoints are auto-generated from the schema. No custom resources exist.
 
 ```
 demo-vector/
-├── config.yaml                    # App configuration
+├── Cargo.toml                     # App configuration under [package.metadata.app]
 ├── schemas/
 │   └── vector.graphql             # Article table with Vector field
 ├── source/                        # React/Vite frontend
 │   ├── package.json               # Dependencies: React 18, highlight.js, Vite 5
-│   ├── vite.config.ts             # Auto-reads base path from config.yaml
+│   ├── vite.config.ts             # Auto-reads base path from Cargo.toml
 │   ├── tsconfig.json
 │   └── src/
-│       ├── main.tsx               # React entry point
-│       ├── App.tsx                 # App shell with nav and footer
-│       ├── articles.ts            # 100 sample articles dataset
-│       ├── utils.ts               # JSON syntax highlighting utility
-│       ├── theme.ts               # Theme configuration
-│       ├── index.css              # Global styles
-│       ├── yeti.css               # Yeti design system styles
-│       ├── auth.css               # Auth component styles
+│       ├── main.tsx                  # React entry point
+│       ├── App.tsx                   # Thin shell -- wires auth gate + page
+│       ├── api.ts                    # Fetch helpers
+│       ├── types.ts                  # Shared TypeScript types
+│       ├── utils.ts                  # JSON syntax highlighting utility
+│       ├── articles.ts               # 100 sample articles dataset
+│       ├── components/
+│       │   └── Footer.tsx            # Shared UI primitives
+│       ├── hooks/
+│       │   └── useAuth.ts            # Auth state hook (template)
 │       ├── pages/
-│       │   └── VectorPage.tsx     # Main two-panel search interface
-│       └── components/
-│           └── Footer.tsx         # App footer
+│       │   ├── VectorPage.tsx        # Main two-panel search interface
+│       │   └── Login.tsx             # Configurable login page (template)
+│       └── styles/
+│           ├── _vars.css             # Per-app brand colors and shared tokens
+│           ├── yeti.css              # Canonical Yeti stylesheet
+│           └── index.css             # App-specific overrides
 └── web/                           # Built output (auto-generated)
 ```
+
+The `src/` layout is the standard yeti UI app structure: a thin `App.tsx`, root utility modules (`api.ts`, `types.ts`, `utils.ts`), shared UI in `components/`, hooks in `hooks/`, pages in `pages/` (including the bundled `Login.tsx`), and stylesheets in `styles/`. `yeti.css` is the canonical stylesheet shared across all yeti apps; `_vars.css` holds this app's brand tokens; `index.css` carries app-specific overrides.
+
+## Authentication
+
+demo-vector declares `@export(public: [read, create, delete])`, so the demo runs without credentials. To gate it, add a `[package.metadata.auth]` section in `Cargo.toml` (methods, JWT, OAuth providers, role rules) and wrap the SPA with the bundled `Login.tsx` + `useAuth` hook:
+
+```tsx
+const auth = useAuth()
+if (auth === null) return <Loading/>
+if (!auth) return <Login/>
+return <VectorPage/>
+```
+
+The `Login` component takes optional `logo`, `title`, `subtitle`, and `redirectUri` props for branding.
 
 ---
 
