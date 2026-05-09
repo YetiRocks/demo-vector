@@ -251,9 +251,11 @@ export function VectorPage() {
     if (e.key === 'Enter') handleSearch()
   }, [handleSearch])
 
-  // Format SSE articles for display
+  // Show only the most-recent enriched record (newest is at index 0).
+  // Embeddings are shown in full — collapsed onto one line for readability,
+  // not truncated, so users can see what bge-small-en-v1.5 actually emits.
   const sseDisplay = sseArticles.length > 0
-    ? collapseEmbeddings(JSON.stringify(sseArticles.map(truncateEmbeddings), null, 2))
+    ? collapseEmbeddings(JSON.stringify(sseArticles[0], null, 2))
     : ''
 
   return (

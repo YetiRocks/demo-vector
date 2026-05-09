@@ -1,1 +1,12 @@
 /* App-specific styles. Add new rules here; design-system rules belong in yeti.css. */
+
+/* Each .panel here has two CodePane (rendered as .code-block) siblings
+   stacked between panel-headers. yeti.css's .code-block has no flex
+   sizing on its own; only `.panel-content > .code-block { height: 100% }`
+   applies — and we don't use .panel-content here. Stretch direct .panel
+   .code-block children to share the remaining vertical space equally so
+   the schema/request panes match the live-stream/results panes. */
+.panel > .code-block {
+  flex: 1 1 0;
+  min-height: 0;
+}
