@@ -10,3 +10,16 @@
   flex: 1 1 0;
   min-height: 0;
 }
+
+/* Phone width: the columns stack (yeti.css) and each is as tall as its
+ * content, but these panes are sized only by the shared `flex: 1 1 0`, so a
+ * stacked column gave each a 48px sliver. Below 600px a pane is as tall as its
+ * text, between 120px and 420px, and scrolls past that. */
+@media (max-width: 600px) {
+  .panel > .code-block {
+    flex: 0 0 auto;
+    min-height: 120px;
+    max-height: 420px;
+    overflow-y: auto;
+  }
+}
