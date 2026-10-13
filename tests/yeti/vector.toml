@@ -1,0 +1,241 @@
+# demo-vector: Article with a 384-dimension embedding generated on write and
+# an HNSW cosine search (`op = "vector"` in the query parameter). The cluster's
+# rows are not fixed, so the search cases write their own Article, search for
+# it, and delete it. Public grant: read, create, delete.
+
+
+[[case]]
+name = "list Article"
+protocol = "http"
+path = "/api/article/?limit=2"
+[case.expect]
+status = 200
+content_type = "json"
+shape = "array"
+[[case.expect.json]]
+pointer = "/0/id"
+type = "string"
+[[case.expect.json]]
+pointer = "/0/title"
+type = "string"
+
+
+[[case]]
+name = "absent Article is a problem 404"
+protocol = "http"
+path = "/api/article/yt-absent-{run}"
+[case.expect]
+status = 404
+content_type = "application/problem+json"
+shape = "problem"
+
+
+[[case]]
+name = "GraphQL list Article"
+protocol = "graphql"
+query = "{ Article(limit: 1) { id title category } }"
+[case.expect]
+status = 200
+content_type = "json"
+[[case.expect.json]]
+pointer = "/data/Article"
+type = "array"
+[[case.expect.json]]
+pointer = "/data/Article/0/id"
+type = "string"
+
+
+[[case]]
+name = "MCP initialize"
+protocol = "mcp"
+rpc = "initialize"
+[case.expect]
+status = 200
+[[case.expect.json]]
+pointer = "/result/serverInfo/name"
+type = "string"
+[[case.expect.json]]
+pointer = "/result/protocolVersion"
+type = "string"
+
+
+[[case]]
+name = "MCP tools/list names the table tools"
+protocol = "mcp"
+rpc = "tools/list"
+[case.expect]
+status = 200
+contains = "article_list"
+[[case.expect.json]]
+pointer = "/result/tools"
+type = "array"
+[[case.expect.json]]
+pointer = "/result/tools/0/name"
+type = "string"
+
+
+[[case]]
+name = "MCP tools/call article_list"
+protocol = "mcp"
+rpc = "tools/call"
+params = { name = "article_list", arguments = { limit = 1 } }
+[case.expect]
+status = 200
+[[case.expect.json]]
+pointer = "/result/isError"
+equals = false
+[[case.expect.json]]
+pointer = "/result/content/0/type"
+equals = "text"
+[[case.expect.json]]
+pointer = "/result/content/0/text"
+type = "string"
+
+
+[[case]]
+name = "MCP unknown method is a JSON-RPC error"
+protocol = "mcp"
+rpc = "no/such/method"
+[case.expect]
+status = 200
+[[case.expect.json]]
+pointer = "/error/code"
+equals = -32601
+
+
+[[case]]
+name = "MCP article_search tool is listed"
+protocol = "mcp"
+rpc = "tools/list"
+[case.expect]
+status = 200
+contains = "article_search"
+
+
+[[case]]
+name = "SSE opens on Article"
+protocol = "sse"
+path = "/api/article?stream=sse"
+
+
+[[case]]
+name = "gRPC-Web opens on Article"
+protocol = "grpcweb"
+path = "/api/article?stream=grpcweb"
+
+
+[[case]]
+name = "WebSocket opens on Article"
+protocol = "ws"
+path = "/api/article"
+
+
+[[case]]
+name = "MQTT subscribes to Article"
+protocol = "mqtt"
+table = "Article"
+
+
+[[case]]
+name = "create an Article; the embedding is generated on write"
+protocol = "http"
+method = "POST"
+path = "/api/article"
+json = { id = "yt-vec-{run}", title = "Quantum", author = "yt", category = "science", content = "Qubits exploit superposition and entanglement for quantum computation. yt-{run}" }
+[case.expect]
+status = 201
+content_type = "json"
+shape = "object"
+[[case.expect.json]]
+pointer = "/id"
+equals = "yt-vec-{run}"
+[[case.expect.json]]
+pointer = "/embedding"
+type = "array"
+[[case.expect.json]]
+pointer = "/embedding/383"
+type = "number"
+[[case.expect.json]]
+pointer = "/embedding/384"
+present = false
+
+
+[[case]]
+name = "vector search ranks the created Article first, with a distance"
+protocol = "http"
+path = "/api/article/?query=%7B%22conditions%22%3A%5B%7B%22field%22%3A%22embedding%22%2C%22op%22%3A%22vector%22%2C%22value%22%3A%22quantum%20computing%20with%20qubits%22%7D%5D%2C%22limit%22%3A1%7D"
+mutates = true
+[case.expect]
+status = 200
+content_type = "json"
+shape = "array"
+[[case.expect.json]]
+pointer = "/0/id"
+equals = "yt-vec-{run}"
+[[case.expect.json]]
+pointer = "/0/$distance"
+type = "number"
+
+
+[[case]]
+name = "vector search honours limit"
+protocol = "http"
+path = "/api/article/?query=%7B%22conditions%22%3A%5B%7B%22field%22%3A%22embedding%22%2C%22op%22%3A%22vector%22%2C%22value%22%3A%22neural%20network%20training%22%7D%5D%2C%22limit%22%3A2%7D"
+[case.expect]
+status = 200
+content_type = "json"
+shape = "array"
+[[case.expect.json]]
+pointer = "/2"
+present = false
+[[case.expect.json]]
+pointer = "/0/$distance"
+type = "number"
+
+
+[[case]]
+name = "a missing required field fails validation"
+protocol = "http"
+method = "POST"
+path = "/api/article"
+json = { id = "yt-bad-{run}", title = "t" }
+[case.expect]
+status = 422
+content_type = "application/problem+json"
+shape = "problem"
+
+
+[[case]]
+name = "update is not in the public grant"
+protocol = "http"
+method = "PUT"
+path = "/api/article/yt-vec-{run}"
+json = { title = "x" }
+[case.expect]
+status = 401
+content_type = "application/problem+json"
+shape = "problem"
+
+
+[[case]]
+name = "delete the created Article"
+protocol = "http"
+method = "DELETE"
+path = "/api/article/yt-vec-{run}"
+[case.expect]
+status = 200
+content_type = "json"
+[[case.expect.json]]
+pointer = "/id"
+equals = "yt-vec-{run}"
+
+
+[[case]]
+name = "the deleted Article is gone"
+protocol = "http"
+path = "/api/article/yt-vec-{run}"
+mutates = true
+[case.expect]
+status = 404
+content_type = "application/problem+json"
+shape = "problem"
