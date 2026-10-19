@@ -1,0 +1,22 @@
+[
+  {
+    "id": "demo-vector:seeder",
+    "name": "Article reset (delete only)",
+    "appId": "demo-vector",
+    "permission": {
+      "super_user": false,
+      "databases": {
+        "demo-vector": {
+          "tables": {
+            "Article": {
+              "read": false,
+              "insert": false,
+              "update": false,
+              "delete": true
+            }
+          }
+        }
+      }
+    }
+  }
+]
