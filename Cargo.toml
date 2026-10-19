@@ -9,7 +9,8 @@ account_id = "yeti"
 schemas = "schemas/vector.graphql"
 static = { path = "web", root = "/", source = "source", spa = true, build = "npm install && npm run build" }
 # The demo-vector:seeder role (auth/roles.json): delete on Article and nothing
-# else, held by the demo-vector-seeder user the demo reset clears Article as.
+# else, held by the __seed__--demo-vector user the demo reset clears Article
+# as (a reserved name: no users file or tenant may create it).
 # On a cluster the app runs in a deployment child that holds no operator, so
 # the reset needs a role this app grants (YTC-2436).
 loaders = { auth = ["auth/roles.json"] }
