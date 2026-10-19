@@ -1,0 +1,22 @@
+[
+  {
+    "id": "demo-vector:seeder",
+    "name": "Article seeder",
+    "appId": "demo-vector",
+    "permission": {
+      "super_user": false,
+      "databases": {
+        "demo-vector": {
+          "tables": {
+            "Article": {
+              "read": true,
+              "insert": true,
+              "update": false,
+              "delete": true
+            }
+          }
+        }
+      }
+    }
+  }
+]

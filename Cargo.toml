@@ -8,6 +8,11 @@ version = "1.0.0"
 account_id = "yeti"
 schemas = "schemas/vector.graphql"
 static = { path = "web", root = "/", source = "source", spa = true, build = "npm install && npm run build" }
+# The demo-vector:seeder role (auth/roles.json): the one-run user the demo
+# reset clears Article as. On a cluster the app runs in a deployment child
+# that refuses the platform operator, so the reset needs a role this app
+# grants (YTC-2436).
+loaders = { auth = ["auth/roles.json"] }
 
 [package.metadata.app.tests]
 dir = "tests/yeti"
