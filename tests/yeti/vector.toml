@@ -140,7 +140,7 @@ table = "Article"
 name = "create an Article; the embedding is generated on write"
 protocol = "http"
 method = "POST"
-path = "/api/article"
+path = "/api/article/"
 json = { id = "yt-vec-{run}", title = "Quantum", author = "yt", category = "science", content = "Qubits exploit superposition and entanglement for quantum computation. yt-{run}" }
 [case.expect]
 status = 201
@@ -197,7 +197,7 @@ type = "number"
 name = "a missing required field fails validation"
 protocol = "http"
 method = "POST"
-path = "/api/article"
+path = "/api/article/"
 json = { id = "yt-bad-{run}", title = "t" }
 [case.expect]
 status = 400

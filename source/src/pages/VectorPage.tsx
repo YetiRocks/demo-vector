@@ -158,7 +158,7 @@ export function VectorPage() {
     try {
       const record = generateRecord()
 
-      const response = await fetch(`${__STATIC_ROOT__}/${__RESOURCES_ROOT__}/Article`, {
+      const response = await fetch(`${__STATIC_ROOT__}/${__RESOURCES_ROOT__}/Article/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(record),

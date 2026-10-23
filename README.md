@@ -48,7 +48,7 @@ Restart yeti. The frontend builds automatically on first load via `npm run build
 ### 2. Insert an article
 
 ```bash
-curl -X POST https://localhost:9996/demo-vector/Article \
+curl -X POST https://localhost:9996/demo-vector/Article/ \
   -H "Content-Type: application/json" \
   -d '{
     "id": "article-1",
@@ -152,7 +152,7 @@ Navigate to `https://localhost:9996/demo-vector/` in your browser. The React fro
 ```
 Browser (React/Vite)                      CLI / Agents
     |                                         |
-    +-- POST /Article ----------------------->+
+    +-- POST /Article/ ---------------------->+
     +-- GET  /Article/?query={vector} ------->+
     +-- SSE  /Article/ ---------------------->+
     |                                         |
@@ -361,7 +361,7 @@ All endpoints are auto-generated from the schema. No custom resources exist.
 
 | Endpoint | Methods | Description |
 |----------|---------|-------------|
-| `/demo-vector/Article` | GET, POST | List articles (with optional vector query) or create a new article |
+| `/demo-vector/Article/` | GET, POST | List articles (with optional vector query) or create a new article |
 | `/demo-vector/Article/{id}` | GET, PUT, DELETE | Read, update, or delete a single article |
 | `/demo-vector/Article/` | GET (SSE) | Server-sent events stream for real-time updates |
 
